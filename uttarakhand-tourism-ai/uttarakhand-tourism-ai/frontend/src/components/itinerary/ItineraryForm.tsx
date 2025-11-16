@@ -131,117 +131,154 @@ const ItineraryForm: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div className="text-center mb-6">
+        <div className="inline-block p-4 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full mb-4 shadow-lg">
+          <Calendar className="w-8 h-8 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">Plan Your Journey</h2>
+        <p className="text-gray-600">Create a personalized itinerary for your Uttarakhand adventure</p>
+      </div>
+
       {/* Quick Suggestions */}
       {suggestions?.quick_trips && suggestions.quick_trips.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="font-semibold text-gray-800 mb-3">Quick Trip Suggestions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-6 shadow-lg">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-2xl">✨</span>
+            <h3 className="text-lg font-bold text-gray-800">Quick Trip Suggestions</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {suggestions.quick_trips.map((trip: any, index: number) => (
               <button
                 key={index}
                 onClick={() => handleQuickSelect(trip)}
-                className="text-left p-3 bg-white rounded-lg border border-blue-200 hover:border-blue-400 hover:shadow-md transition-all"
+                className="text-left p-4 bg-white rounded-xl border-2 border-purple-200 hover:border-purple-400 hover:shadow-xl transition-all transform hover:-translate-y-1 group"
               >
-                <p className="font-medium text-gray-800">{trip.name}</p>
-                <p className="text-sm text-gray-600">{trip.description}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {trip.duration} days • ₹{trip.budget.toLocaleString()}
-                </p>
+                <p className="font-bold text-gray-800 mb-1 group-hover:text-purple-600 transition-colors">{trip.name}</p>
+                <p className="text-sm text-gray-600 mb-2">{trip.description}</p>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {trip.duration} days
+                  </span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <DollarSign className="w-3 h-3" />
+                    ₹{trip.budget.toLocaleString()}
+                  </span>
+                </div>
               </button>
             ))}
           </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Duration */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            <Calendar className="w-4 h-4 inline mr-1" />
-            Duration (days)
-          </label>
-          <input
-            type="number"
-            min="1"
-            max="30"
-            value={duration}
-            onChange={(e) => setDuration(parseInt(e.target.value) || 1)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
+      <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-2xl p-6 shadow-lg border border-purple-100">
+        {/* Duration & Budget - Side by Side */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Duration */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                <Calendar className="w-4 h-4 text-white" />
+              </div>
+              Duration (days)
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="30"
+              value={duration}
+              onChange={(e) => setDuration(parseInt(e.target.value) || 1)}
+              className="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all bg-purple-50/50"
+              required
+            />
+          </div>
+
+          {/* Budget */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                <DollarSign className="w-4 h-4 text-white" />
+              </div>
+              Budget (₹)
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={budget}
+              onChange={(e) => setBudget(parseInt(e.target.value) || 0)}
+              className="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all bg-purple-50/50"
+              required
+            />
+          </div>
         </div>
 
-        {/* Budget */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            <DollarSign className="w-4 h-4 inline mr-1" />
-            Budget (₹)
-          </label>
-          <input
-            type="number"
-            min="0"
-            value={budget}
-            onChange={(e) => setBudget(parseInt(e.target.value) || 0)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
+        {/* Start Location & Travel Style - Side by Side */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Start Location */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                <MapPin className="w-4 h-4 text-white" />
+              </div>
+              Start Location
+            </label>
+            <select
+              value={startLocation}
+              onChange={(e) => setStartLocation(e.target.value)}
+              className="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all bg-purple-50/50"
+              required
+            >
+              {locationOptions.map((loc) => (
+                <option key={loc} value={loc}>
+                  {loc}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {/* Start Location */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            <MapPin className="w-4 h-4 inline mr-1" />
-            Start Location
-          </label>
-          <select
-            value={startLocation}
-            onChange={(e) => setStartLocation(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          >
-            {locationOptions.map((loc) => (
-              <option key={loc} value={loc}>
-                {loc}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Travel Style */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Travel Style
-          </label>
-          <select
-            value={travelStyle}
-            onChange={(e) => setTravelStyle(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          >
-            {travelStyleOptions.map((style: string) => (
-              <option key={style} value={style.toLowerCase()}>
-                {style}
-              </option>
-            ))}
-          </select>
+          {/* Travel Style */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm">✈️</span>
+              </div>
+              Travel Style
+            </label>
+            <select
+              value={travelStyle}
+              onChange={(e) => setTravelStyle(e.target.value)}
+              className="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all bg-purple-50/50"
+              required
+            >
+              {travelStyleOptions.map((style: string) => (
+                <option key={style} value={style.toLowerCase()}>
+                  {style}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Interests */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            <Heart className="w-4 h-4 inline mr-1" />
+          <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-rose-500 rounded-lg flex items-center justify-center">
+              <Heart className="w-4 h-4 text-white" />
+            </div>
             Interests (Select at least one)
           </label>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {interestOptions.map((interest: string) => (
               <button
                 key={interest}
                 type="button"
                 onClick={() => toggleInterest(interest)}
-                className={`px-4 py-2 rounded-lg border transition-all ${
+                className={`px-4 py-3 rounded-xl border-2 transition-all font-medium transform hover:scale-105 ${
                   interests.includes(interest)
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-500'
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-purple-600 shadow-lg'
+                    : 'bg-white text-gray-700 border-purple-200 hover:border-purple-400 hover:shadow-md'
                 }`}
               >
                 {interest}
@@ -261,17 +298,17 @@ const ItineraryForm: React.FC = () => {
         <button
           type="submit"
           disabled={isGenerating || interests.length === 0}
-          className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors font-medium"
+          className="w-full px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
         >
           {isGenerating ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Generating Itinerary...</span>
+              <Loader2 className="w-6 h-6 animate-spin" />
+              <span>Generating Your Perfect Itinerary...</span>
             </>
           ) : (
             <>
-              <Calendar className="w-5 h-5" />
-              <span>Generate Itinerary</span>
+              <Calendar className="w-6 h-6" />
+              <span>Generate My Itinerary</span>
             </>
           )}
         </button>

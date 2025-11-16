@@ -6,6 +6,10 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
   language?: string;
+  feedback?: {
+    rating: number | null;
+    comment?: string;
+  };
 }
 
 export interface ConversationHistory {

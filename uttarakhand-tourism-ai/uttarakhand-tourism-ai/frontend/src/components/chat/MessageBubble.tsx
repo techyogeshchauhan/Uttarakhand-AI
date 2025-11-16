@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { User, Bot, Volume2, VolumeX } from 'lucide-react';
+import { User, Bot, Volume2, VolumeX, ThumbsUp, ThumbsDown } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { ChatMessage } from '../../types/chat';
 
 interface MessageBubbleProps {
   message: ChatMessage;
+  onFeedback?: (messageId: string, rating: number) => void;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) => {
   const isUser = message.role === 'user';
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [feedback, setFeedback] = useState<number | null>(message.feedback?.rating || null);
 
   const handleSpeak = () => {
     if (isSpeaking) {
@@ -27,7 +29,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
       garhwali: 'hi-IN',
       kumaoni: 'hi-IN'
     };
-    utterance.lang = langMap[message.language] || 'en-IN';
+    utterance.lang = langMap[message.language || 'english'] || 'en-IN';
     utterance.rate = 0.9;
     utterance.pitch = 1;
 
@@ -36,6 +38,15 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
     utterance.onerror = () => setIsSpeaking(false);
 
     window.speechSynthesis.speak(utterance);
+  };
+
+  const handleFeedback = async (rating: number) => {
+    if (!message.id) return;
+    
+    setFeedback(rating);
+    if (onFeedback) {
+      onFeedback(message.id, rating);
+    }
   };
 
   return (
@@ -84,7 +95,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             </ReactMarkdown>
           </div>
         )}
-        <div className="flex items-center justify-between mt-2 gap-2">
+        <div className="flex items-center justify-between mt-2 gap-3">
           <p
             className={`text-xs ${
               isUser ? 'text-white/70' : 'text-gray-500'
@@ -96,21 +107,45 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             })}
           </p>
           {!isUser && (
-            <button
-              onClick={handleSpeak}
-              className={`p-1.5 rounded-lg transition-all ${
-                isSpeaking 
-                  ? 'bg-red-50 hover:bg-red-100' 
-                  : 'hover:bg-gray-100'
-              }`}
-              title={isSpeaking ? 'Stop speaking' : 'Read aloud'}
-            >
-              {isSpeaking ? (
-                <VolumeX className="w-4 h-4 text-red-500 animate-pulse" />
-              ) : (
-                <Volume2 className="w-4 h-4 text-gray-600" />
-              )}
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleSpeak}
+                className={`p-1.5 rounded-lg transition-all ${
+                  isSpeaking 
+                    ? 'bg-red-50 hover:bg-red-100' 
+                    : 'hover:bg-gray-100'
+                }`}
+                title={isSpeaking ? 'Stop speaking' : 'Read aloud'}
+              >
+                {isSpeaking ? (
+                  <VolumeX className="w-4 h-4 text-red-500 animate-pulse" />
+                ) : (
+                  <Volume2 className="w-4 h-4 text-gray-600" />
+                )}
+              </button>
+              <button
+                onClick={() => handleFeedback(1)}
+                className={`p-1.5 rounded-lg transition-all ${
+                  feedback === 1
+                    ? 'bg-emerald-100 text-emerald-600'
+                    : 'hover:bg-gray-100 text-gray-600'
+                }`}
+                title="Like this response"
+              >
+                <ThumbsUp className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handleFeedback(-1)}
+                className={`p-1.5 rounded-lg transition-all ${
+                  feedback === -1
+                    ? 'bg-red-100 text-red-600'
+                    : 'hover:bg-gray-100 text-gray-600'
+                }`}
+                title="Dislike this response"
+              >
+                <ThumbsDown className="w-4 h-4" />
+              </button>
+            </div>
           )}
         </div>
       </div>

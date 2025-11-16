@@ -1,6 +1,6 @@
 # 🏔️ Uttarakhand Tourism AI
 
-An intelligent tourism guide for Uttarakhand powered by Google Gemini AI, featuring multi-language support, image recognition, smart itinerary planning, and real-time emergency assistance.
+An intelligent tourism guide for Uttarakhand powered by Yogesh and Teams, featuring multi-language support, image recognition, smart itinerary planning, and real-time emergency assistance.
 
 ## ✨ Features
 

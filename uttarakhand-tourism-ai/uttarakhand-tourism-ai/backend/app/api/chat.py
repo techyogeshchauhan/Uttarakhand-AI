@@ -5,7 +5,7 @@ from app.services.translation_service import get_translation_service
 from app.utils.validators import validate_language, sanitize_input
 from app.utils.logger import logger
 
-chat_bp = Blueprint('chat', __name__)
+chat_bp = Blueprint('chat_ai', __name__)
 
 @chat_bp.route('/message', methods=['POST'])
 def send_message():

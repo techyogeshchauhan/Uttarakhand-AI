@@ -58,9 +58,15 @@ export async function translateText(
   return handleResponse<TranslationResponse>(response);
 }
 
-export async function getChatSuggestions(language: Language = 'english') {
+export interface SuggestionsResponse {
+  success: boolean;
+  suggestions: string[];
+  language: string;
+}
+
+export async function getChatSuggestions(language: Language = 'english'): Promise<SuggestionsResponse> {
   const response = await fetch(`${API_BASE_URL}/chat/suggestions?language=${language}`);
-  return handleResponse(response);
+  return handleResponse<SuggestionsResponse>(response);
 }
 
 // ==================== Vision API ====================
@@ -259,5 +265,105 @@ export async function getAlerts(location?: string): Promise<{
     ? `${API_BASE_URL}/emergency/alerts?location=${encodeURIComponent(location)}`
     : `${API_BASE_URL}/emergency/alerts`;
   const response = await fetch(url);
+  return handleResponse(response);
+}
+
+// ==================== Auth API ====================
+
+export interface SignupData {
+  email: string;
+  password: string;
+  name: string;
+  language?: Language;
+}
+
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    user: {
+      _id: string;
+      email: string;
+      name: string;
+      language: string;
+      created_at: string;
+    };
+    token: string;
+  };
+  error?: string;
+}
+
+export async function signup(data: SignupData): Promise<AuthResponse> {
+  const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  return handleResponse<AuthResponse>(response);
+}
+
+export async function login(data: LoginData): Promise<AuthResponse> {
+  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  return handleResponse<AuthResponse>(response);
+}
+
+// ==================== Chat History API ====================
+
+export interface SaveMessageData {
+  session_id?: string;
+  role: 'user' | 'assistant';
+  content: string;
+  metadata?: {
+    language?: string;
+    query_type?: string;
+    tokens_used?: number;
+    response_time?: number;
+  };
+}
+
+export async function saveMessage(data: SaveMessageData): Promise<any> {
+  const token = localStorage.getItem('authToken');
+  if (!token) return { success: false, error: 'Not authenticated' };
+
+  const response = await fetch(`${API_BASE_URL}/history/message`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(data),
+  });
+
+  return handleResponse(response);
+}
+
+export async function submitFeedback(messageId: string, rating: number, comment?: string): Promise<any> {
+  const token = localStorage.getItem('authToken');
+  if (!token) return { success: false, error: 'Not authenticated' };
+
+  const response = await fetch(`${API_BASE_URL}/history/feedback`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ message_id: messageId, rating, comment }),
+  });
+
   return handleResponse(response);
 }

@@ -1,101 +1,57 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from './common/Navbar';
-import LanguageSelector from './common/LanguageSelector';
+import PremiumHeroSlider from './explore/PremiumHeroSlider';
+import NaturalCategoryCards from './explore/NaturalCategoryCards';
+import DestinationShowcase from './explore/DestinationShowcase';
 import Footer from './common/Footer';
-import ChatInterface from './chat/ChatInterface';
-import ImageUpload from './vision/ImageUpload';
-import ItineraryForm from './itinerary/ItineraryForm';
-import EmergencyAlert from './emergency/EmergencyAlert';
-import WeatherWidget from './emergency/WeatherWidget';
 import type { Language } from '../types';
-
-type TabType = 'chat' | 'vision' | 'itinerary' | 'emergency';
+import '../styles/uttarakhand-theme.css';
 
 function Dashboard() {
-  const [activeTab, setActiveTab] = useState<TabType>('chat');
+  const navigate = useNavigate();
   const [language, setLanguage] = useState<Language>('english');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex flex-col">
-      <Navbar />
+    <div className="min-h-screen bg-stone-50 flex flex-col">
+      {/* Fixed Navbar */}
+      <Navbar 
+        currentLanguage={language}
+        onLanguageChange={setLanguage}
+      />
       
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-800">Tourism Dashboard</h2>
-          <LanguageSelector currentLanguage={language} onLanguageChange={setLanguage} />
-        </div>
+      {/* Premium Hero Slider */}
+      <div className="pt-16">
+        <PremiumHeroSlider />
       </div>
       
-      <main className="flex-1 container mx-auto px-4 py-8">
-        {/* Tab Navigation */}
-        <div className="bg-white rounded-lg shadow-md p-2 mb-6">
-          <div className="flex gap-2 overflow-x-auto">
-            <TabButton
-              active={activeTab === 'chat'}
-              onClick={() => setActiveTab('chat')}
-              icon="💬"
-              label="Chat Guide"
-            />
-            <TabButton
-              active={activeTab === 'vision'}
-              onClick={() => setActiveTab('vision')}
-              icon="📸"
-              label="Image Info"
-            />
-            <TabButton
-              active={activeTab === 'itinerary'}
-              onClick={() => setActiveTab('itinerary')}
-              icon="📅"
-              label="Plan Trip"
-            />
-            <TabButton
-              active={activeTab === 'emergency'}
-              onClick={() => setActiveTab('emergency')}
-              icon="🚨"
-              label="Emergency"
-            />
-          </div>
-        </div>
+      {/* Natural Category Cards */}
+      <NaturalCategoryCards />
 
-        {/* Tab Content */}
-        <div className={`rounded-lg shadow-lg overflow-hidden ${activeTab === 'chat' ? '' : 'bg-white p-6'}`}>
-          {activeTab === 'chat' && <ChatInterface language={language} />}
-          {activeTab === 'vision' && <ImageUpload language={language} />}
-          {activeTab === 'itinerary' && <ItineraryForm />}
-          {activeTab === 'emergency' && (
-            <div className="space-y-6">
-              <WeatherWidget />
-              <EmergencyAlert />
-            </div>
-          )}
+      {/* Destination Showcase */}
+      <DestinationShowcase />
+      
+      {/* Call to Action Section */}
+      <div className="py-16 bg-gradient-to-br from-emerald-50 via-teal-50 to-stone-50">
+        <div className="container mx-auto px-6 max-w-4xl text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4">
+            Need Travel Assistance?
+          </h2>
+          <p className="text-lg text-stone-600 mb-8">
+            Access our AI-powered services for personalized travel planning, place recognition, and emergency support
+          </p>
+          <button
+            onClick={() => navigate('/services')}
+            className="px-8 py-4 bg-gradient-to-r from-emerald-700 to-teal-700 text-white font-semibold rounded-lg hover:from-emerald-800 hover:to-teal-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          >
+            Explore AI Services
+          </button>
         </div>
-      </main>
+      </div>
 
+      {/* Footer */}
       <Footer />
     </div>
-  );
-}
-
-interface TabButtonProps {
-  active: boolean;
-  onClick: () => void;
-  icon: string;
-  label: string;
-}
-
-function TabButton({ active, onClick, icon, label }: TabButtonProps) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all transform hover:-translate-y-0.5 ${
-        active
-          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 shadow-sm'
-      }`}
-    >
-      <span className="text-xl">{icon}</span>
-      <span className="whitespace-nowrap">{label}</span>
-    </button>
   );
 }
 
