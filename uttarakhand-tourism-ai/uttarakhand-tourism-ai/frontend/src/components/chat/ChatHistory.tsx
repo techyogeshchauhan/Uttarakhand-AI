@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { MessageSquare, Clock, ThumbsUp, ThumbsDown, Trash2, Search, User, Download, Filter, ChevronLeft, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import DOMPurify from 'dompurify';
+import Navbar from '../common/Navbar';
+import Footer from '../common/Footer';
 
 interface Message {
   _id: string;
@@ -255,7 +257,9 @@ const ChatHistory: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-orange-50 to-yellow-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-stone-50 via-orange-50 to-yellow-50">
+      <Navbar />
+      
       {/* Header with User Info */}
       <div className="bg-white border-b border-stone-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-6">
@@ -560,6 +564,8 @@ const ChatHistory: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };
