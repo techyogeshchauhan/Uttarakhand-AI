@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, X, User, LogOut, Settings, History } from 'lucide-react';
+import { Menu, X, User, LogOut, Settings, History, BarChart3, Activity } from 'lucide-react';
 import type { Language } from '../../types';
+import { commonTranslations } from '../../utils/translations';
 
 interface NavbarProps {
   showAuth?: boolean;
@@ -48,22 +49,84 @@ const Navbar: React.FC<NavbarProps> = ({
       .slice(0, 2);
   };
 
+  const t = commonTranslations[currentLanguage];
+  
   const navLinks = [
-    { label: 'Home', path: '/' },
-    { label: 'Services', path: '/services' },
-    { label: 'Explore', path: '/explore' },
+    { label: t.nav.home, path: '/' },
+    { label: t.nav.services, path: '/services' },
+    { label: t.nav.explore, path: '/explore' },
     ...(user ? [
-      { label: 'History', path: '/history' },
-      { label: 'Profile', path: '/profile' }
+      { label: t.nav.history, path: '/history' },
+      { label: t.nav.profile, path: '/profile' }
     ] : []),
-    { label: 'Official Tourism', path: 'https://uttarakhandtourism.gov.in/', external: true }
+    { label: currentLanguage === 'hindi' ? 'आधिकारिक पर्यटन' : 'Official Tourism', path: 'https://uttarakhandtourism.gov.in/', external: true }
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm border-b border-stone-200">
-      <div className="container mx-auto px-6 max-w-7xl">
-        {/* Desktop Layout */}
-        <div className="hidden md:flex items-center justify-between h-16">
+    <>
+      {/* Government Header */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-600 via-white to-green-600 border-b-2 border-orange-500">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="flex items-center justify-between h-20 gap-4">
+            {/* Left - PM Photo & Emblem */}
+            <div className="flex items-center gap-3">
+              <img 
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Government_of_India_logo.svg/2560px-Government_of_India_logo.svg.png"
+                alt="Government of India"
+                className="h-14 w-auto"
+              />
+              <div className="hidden sm:block border-l-2 border-stone-300 pl-3">
+                <img 
+                  src="https://www.bssnews.net/assets/news_photos/2024/03/22/image-180146-1711095480.jpg"
+                  alt="Hon'ble Prime Minister"
+                  className="h-16 w-auto rounded-md shadow-md border-2 border-white"
+                />
+              </div>
+            </div>
+
+            {/* Center - Title */}
+            <div className="flex-1 text-center">
+              <h1 className="text-lg sm:text-2xl font-bold text-stone-800 leading-tight">
+                उत्तराखंड पर्यटन विकास बोर्ड
+              </h1>
+              <p className="text-xs sm:text-sm text-stone-600 font-medium">
+                Uttarakhand Tourism Development Board
+              </p>
+              <p className="text-xs text-orange-700 font-semibold hidden sm:block">
+                देवभूमि - Land of Gods
+              </p>
+            </div>
+
+            {/* Right - CM Photo */}
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:block border-r-2 border-stone-300 pr-3">
+                <img 
+                  src="https://cdnbbsr.s3waas.gov.in/s38208974663db80265e9bfe7b222dcb18/uploads/bfi_thumb/202503101471645722-r2n83af4sbb6aenhlv6l8285ut2p68mbj6k917qnc0.jpg"
+                  alt="Hon'ble Chief Minister"
+                  className="h-16 w-auto rounded-md shadow-md border-2 border-white"
+                />
+              </div>
+              {/* Language Selector */}
+              {onLanguageChange && (
+                <select
+                  value={currentLanguage}
+                  onChange={(e) => onLanguageChange(e.target.value as Language)}
+                  className="px-3 py-2 text-sm font-medium border-2 border-stone-300 rounded-lg bg-white hover:border-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-sm"
+                >
+                  <option value="english">English</option>
+                  <option value="hindi">हिंदी</option>
+                </select>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Navigation */}
+      <nav className="fixed top-20 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm shadow-md border-b border-stone-200">
+        <div className="container mx-auto px-6 max-w-7xl">
+          {/* Desktop Layout */}
+          <div className="hidden md:flex items-center justify-between h-14">
           {/* Logo - Left */}
           <div 
             className="flex items-center gap-2 cursor-pointer group"
@@ -136,7 +199,7 @@ const Navbar: React.FC<NavbarProps> = ({
                           className="w-full flex items-center gap-3 px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
                         >
                           <User className="w-4 h-4" />
-                          <span>Profile</span>
+                          <span>{t.nav.profile}</span>
                         </button>
                         <button
                           onClick={() => {
@@ -146,7 +209,27 @@ const Navbar: React.FC<NavbarProps> = ({
                           className="w-full flex items-center gap-3 px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
                         >
                           <History className="w-4 h-4" />
-                          <span>History</span>
+                          <span>{currentLanguage === 'hindi' ? 'चैट इतिहास' : 'Chat History'}</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            navigate('/activity/dashboard');
+                            setProfileMenuOpen(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
+                        >
+                          <BarChart3 className="w-4 h-4" />
+                          <span>{currentLanguage === 'hindi' ? 'गतिविधि डैशबोर्ड' : 'Activity Dashboard'}</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            navigate('/activity/history');
+                            setProfileMenuOpen(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
+                        >
+                          <Activity className="w-4 h-4" />
+                          <span>{currentLanguage === 'hindi' ? 'गतिविधि इतिहास' : 'Activity History'}</span>
                         </button>
                         <button
                           onClick={() => {
@@ -156,7 +239,7 @@ const Navbar: React.FC<NavbarProps> = ({
                           className="w-full flex items-center gap-3 px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
                         >
                           <Settings className="w-4 h-4" />
-                          <span>Settings</span>
+                          <span>{currentLanguage === 'hindi' ? 'सेटिंग्स' : 'Settings'}</span>
                         </button>
                         <div className="border-t border-stone-200 mt-2 pt-2">
                           <button
@@ -164,7 +247,7 @@ const Navbar: React.FC<NavbarProps> = ({
                             className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                           >
                             <LogOut className="w-4 h-4" />
-                            <span>Logout</span>
+                            <span>{t.nav.logout}</span>
                           </button>
                         </div>
                       </div>
@@ -176,13 +259,13 @@ const Navbar: React.FC<NavbarProps> = ({
                       onClick={() => navigate('/login')}
                       className="px-4 py-2 text-sm font-medium text-stone-700 hover:text-emerald-800 hover:bg-stone-100 rounded-md transition-all duration-200"
                     >
-                      Login
+                      {t.nav.login}
                     </button>
                     <button
                       onClick={() => navigate('/login')}
                       className="px-5 py-2 text-sm font-semibold bg-gradient-to-r from-emerald-700 to-teal-700 text-white rounded-md hover:from-emerald-800 hover:to-teal-800 transition-all duration-200 shadow-sm"
                     >
-                      Sign Up
+                      {t.nav.signup}
                     </button>
                   </>
                 )}
@@ -191,8 +274,8 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Mobile Layout */}
-        <div className="md:hidden flex items-center justify-between h-14">
+          {/* Mobile Layout */}
+          <div className="md:hidden flex items-center justify-between h-14">
           {/* Logo */}
           <div 
             className="flex items-center gap-2 cursor-pointer"
@@ -215,18 +298,18 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
-        <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
-            onClick={() => setMobileMenuOpen(false)}
-            aria-hidden="true"
-          />
-          
-          {/* Drawer */}
-          <div className="fixed top-14 right-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-2xl z-50 md:hidden overflow-y-auto">
+        {/* Mobile Drawer */}
+        {mobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <div 
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
+            
+            {/* Drawer */}
+            <div className="fixed top-[8.5rem] right-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-2xl z-50 md:hidden overflow-y-auto">
             <div className="p-6 space-y-6">
               {/* User Profile Section */}
               {showAuth && user && (
@@ -286,7 +369,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         className="w-full flex items-center gap-3 px-4 py-3 text-base font-medium text-stone-700 hover:text-emerald-800 hover:bg-stone-100 rounded-md transition-all duration-200"
                       >
                         <Settings className="w-5 h-5" />
-                        <span>Settings</span>
+                        <span>{currentLanguage === 'hindi' ? 'सेटिंग्स' : 'Settings'}</span>
                       </button>
                       <button
                         onClick={() => {
@@ -296,7 +379,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         className="w-full flex items-center gap-3 px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 rounded-md transition-all duration-200"
                       >
                         <LogOut className="w-5 h-5" />
-                        <span>Logout</span>
+                        <span>{t.nav.logout}</span>
                       </button>
                     </>
                   ) : (
@@ -308,7 +391,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         }}
                         className="w-full px-4 py-3 text-base font-medium text-stone-700 hover:text-emerald-800 hover:bg-stone-100 rounded-md transition-all duration-200"
                       >
-                        Login
+                        {t.nav.login}
                       </button>
                       <button
                         onClick={() => {
@@ -317,17 +400,18 @@ const Navbar: React.FC<NavbarProps> = ({
                         }}
                         className="w-full px-5 py-3 text-base font-semibold bg-gradient-to-r from-emerald-700 to-teal-700 text-white rounded-md hover:from-emerald-800 hover:to-teal-800 transition-all duration-200 shadow-sm"
                       >
-                        Sign Up
+                        {t.nav.signup}
                       </button>
                     </>
                   )}
                 </div>
               )}
+              </div>
             </div>
-          </div>
-        </>
-      )}
-    </nav>
+          </>
+        )}
+      </nav>
+    </>
   );
 };
 

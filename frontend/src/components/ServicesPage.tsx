@@ -65,9 +65,13 @@ const services: ServiceCard[] = [
   }
 ];
 
-function ServicesPage() {
+interface ServicesPageProps {
+  language?: Language;
+  onLanguageChange?: (lang: Language) => void;
+}
+
+function ServicesPage({ language = 'english', onLanguageChange }: ServicesPageProps) {
   const [activeService, setActiveService] = useState<ServiceType | null>(null);
-  const [language, setLanguage] = useState<Language>('english');
 
   const activeServiceData = services.find(s => s.id === activeService);
 
@@ -75,11 +79,11 @@ function ServicesPage() {
     <div className="min-h-screen bg-stone-50 flex flex-col">
       <Navbar 
         currentLanguage={language}
-        onLanguageChange={setLanguage}
+        onLanguageChange={onLanguageChange}
       />
       
       {/* Hero Section */}
-      <div className="relative pt-24 pb-16 bg-gradient-to-br from-emerald-900 via-teal-900 to-green-900 overflow-hidden">
+      <div className="relative pt-40 pb-16 bg-gradient-to-br from-emerald-900 via-teal-900 to-green-900 overflow-hidden">
         {/* Mountain Pattern Background */}
         <div className="absolute inset-0 opacity-10">
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">

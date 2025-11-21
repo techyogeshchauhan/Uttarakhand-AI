@@ -8,20 +8,24 @@ import Footer from './common/Footer';
 import type { Language } from '../types';
 import '../styles/uttarakhand-theme.css';
 
-function Dashboard() {
+interface DashboardProps {
+  language?: Language;
+  onLanguageChange?: (lang: Language) => void;
+}
+
+function Dashboard({ language = 'english', onLanguageChange }: DashboardProps) {
   const navigate = useNavigate();
-  const [language, setLanguage] = useState<Language>('english');
 
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col">
       {/* Fixed Navbar */}
       <Navbar 
         currentLanguage={language}
-        onLanguageChange={setLanguage}
+        onLanguageChange={onLanguageChange}
       />
       
       {/* Premium Hero Slider */}
-      <div className="pt-16">
+      <div className="pt-24">
         <PremiumHeroSlider />
       </div>
       

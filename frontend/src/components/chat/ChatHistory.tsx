@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import DOMPurify from 'dompurify';
 import Navbar from '../common/Navbar';
 import Footer from '../common/Footer';
+import type { Language } from '../../types';
 
 interface Message {
   _id: string;
@@ -39,7 +40,12 @@ interface UserProfile {
   };
 }
 
-const ChatHistory: React.FC = () => {
+interface ChatHistoryProps {
+  language?: Language;
+  onLanguageChange?: (lang: Language) => void;
+}
+
+const ChatHistory: React.FC<ChatHistoryProps> = ({ language = 'english', onLanguageChange }) => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -247,22 +253,38 @@ const ChatHistory: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-stone-50 via-orange-50 to-yellow-50">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-emerald-600 mx-auto mb-4" />
-          <p className="text-stone-600 font-medium">Loading your conversations...</p>
+      <div className="min-h-screen bg-stone-50 flex flex-col">
+        <Navbar currentLanguage={language} onLanguageChange={onLanguageChange} />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-emerald-600 mx-auto mb-4" />
+            <p className="text-stone-600 font-medium">Loading your conversations...</p>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-stone-50 via-orange-50 to-yellow-50">
-      <Navbar />
+    <div className="min-h-screen flex flex-col bg-stone-50">
+      <Navbar currentLanguage={language} onLanguageChange={onLanguageChange} />
       
-      {/* Header with User Info */}
-      <div className="bg-white border-b border-stone-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* Hero Section */}
+      <div className="relative pt-48 pb-12 bg-gradient-to-br from-emerald-900 via-teal-900 to-green-900 overflow-hidden">
+        {/* Mountain Pattern Background */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="chat-pattern" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+                <path d="M30 10 L50 40 L10 40 Z" fill="currentColor" opacity="0.3"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#chat-pattern)"/>
+          </svg>
+        </div>
+
+        <div className="container mx-auto px-6 max-w-7xl relative z-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             {/* User Info */}
             <div className="flex items-center gap-4">
@@ -272,9 +294,9 @@ const ChatHistory: React.FC = () => {
                     setSelectedSession(null);
                     setMessages([]);
                   }}
-                  className="md:hidden p-2 hover:bg-stone-100 rounded-lg transition-colors"
+                  className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
                 >
-                  <ChevronLeft className="w-5 h-5 text-stone-600" />
+                  <ChevronLeft className="w-5 h-5 text-white" />
                 </button>
               )}
               
@@ -284,16 +306,20 @@ const ChatHistory: React.FC = () => {
                     <img
                       src={userProfile.avatar}
                       alt={userProfile.name}
-                      className="w-14 h-14 rounded-full object-cover border-2 border-emerald-200"
+                      className="w-16 h-16 rounded-full object-cover border-4 border-white/20 shadow-lg"
                     />
                   ) : (
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center border-2 border-emerald-200">
-                      <User className="w-7 h-7 text-white" />
+                    <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-4 border-white/20 shadow-lg">
+                      <User className="w-8 h-8 text-white" />
                     </div>
                   )}
                   <div>
-                    <h1 className="text-2xl font-bold text-stone-800">{userProfile.name}'s Chat History</h1>
-                    <p className="text-sm text-stone-500">{userProfile.email}</p>
+                    <h1 className="text-3xl font-bold text-white" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
+                      {userProfile.name}'s Chat History
+                    </h1>
+                    <p className="text-white/80" style={{ textShadow: '0 1px 5px rgba(0,0,0,0.2)' }}>
+                      {userProfile.email}
+                    </p>
                   </div>
                 </>
               )}
@@ -302,17 +328,17 @@ const ChatHistory: React.FC = () => {
             {/* Stats */}
             {userProfile && (
               <div className="flex gap-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-emerald-600">{userProfile.stats.total_chats}</div>
-                  <div className="text-xs text-stone-500">Total Chats</div>
+                <div className="text-center bg-white/10 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/20">
+                  <div className="text-2xl font-bold text-white">{userProfile.stats.total_chats}</div>
+                  <div className="text-xs text-white/80">Total Chats</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600">{sessions.length}</div>
-                  <div className="text-xs text-stone-500">Conversations</div>
+                <div className="text-center bg-white/10 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/20">
+                  <div className="text-2xl font-bold text-white">{sessions.length}</div>
+                  <div className="text-xs text-white/80">Conversations</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-teal-600">{userProfile.stats.total_feedback}</div>
-                  <div className="text-xs text-stone-500">Feedback Given</div>
+                <div className="text-center bg-white/10 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/20">
+                  <div className="text-2xl font-bold text-white">{userProfile.stats.total_feedback}</div>
+                  <div className="text-xs text-white/80">Feedback Given</div>
                 </div>
               </div>
             )}
@@ -320,15 +346,16 @@ const ChatHistory: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Sessions List */}
-          <div className={`lg:col-span-1 bg-white rounded-xl shadow-lg border border-stone-200 ${selectedSession ? 'hidden lg:block' : 'block'}`}>
-            <div className="p-4 border-b border-stone-200 bg-gradient-to-r from-emerald-50 to-teal-50">
-              <h2 className="text-lg font-bold text-stone-800 mb-3 flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-emerald-600" />
-                Conversations
-              </h2>
+      <div className="flex-1 py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Sessions List */}
+            <div className={`lg:col-span-1 bg-white rounded-2xl shadow-lg border border-stone-200 ${selectedSession ? 'hidden lg:block' : 'block'}`}>
+              <div className="p-4 border-b border-stone-200 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-t-2xl">
+                <h2 className="text-lg font-bold text-stone-800 mb-3 flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-emerald-600" />
+                  Conversations
+                </h2>
               
               {/* Search */}
               <div className="relative mb-3">
@@ -417,64 +444,64 @@ const ChatHistory: React.FC = () => {
             </div>
           </div>
 
-          {/* Messages View */}
-          <div className={`lg:col-span-2 bg-white rounded-xl shadow-lg border border-stone-200 ${!selectedSession && 'hidden lg:block'}`}>
-            {!selectedSession ? (
-              <div className="flex flex-col items-center justify-center h-full text-center py-20">
-                <div className="w-24 h-24 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center mb-6">
-                  <MessageSquare className="w-12 h-12 text-emerald-600" />
-                </div>
-                <h3 className="text-xl font-bold text-stone-800 mb-2">No Conversation Selected</h3>
-                <p className="text-stone-500">Select a conversation from the list to view messages</p>
-              </div>
-            ) : (
-              <>
-                {/* Conversation Header */}
-                <div className="p-4 border-b border-stone-200 bg-gradient-to-r from-emerald-50 to-teal-50 flex items-center justify-between">
-                  <div>
-                    <h3 className="font-bold text-stone-800">Conversation</h3>
-                    <p className="text-xs text-stone-500">{messages.length} messages</p>
+            {/* Messages View */}
+            <div className={`lg:col-span-2 bg-white rounded-2xl shadow-lg border border-stone-200 ${!selectedSession && 'hidden lg:block'}`}>
+              {!selectedSession ? (
+                <div className="flex flex-col items-center justify-center h-full text-center py-20">
+                  <div className="w-24 h-24 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center mb-6 shadow-md">
+                    <MessageSquare className="w-12 h-12 text-emerald-600" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => exportConversation('md')}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors"
-                      title="Export as Markdown"
-                    >
-                      <Download className="w-4 h-4" />
-                      <span className="hidden sm:inline">MD</span>
-                    </button>
-                    <button
-                      onClick={() => exportConversation('json')}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors"
-                      title="Export as JSON"
-                    >
-                      <Download className="w-4 h-4" />
-                      <span className="hidden sm:inline">JSON</span>
-                    </button>
-                  </div>
+                  <h3 className="text-xl font-bold text-stone-800 mb-2">No Conversation Selected</h3>
+                  <p className="text-stone-500">Select a conversation from the list to view messages</p>
                 </div>
-
-                {/* Messages */}
-                <div className="p-6 space-y-6 max-h-[calc(100vh-300px)] overflow-y-auto">
-                  {messages.map((message) => (
-                    <div
-                      key={message._id}
-                      className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
-                    >
-                      {message.role === 'assistant' && (
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-md">
-                          <span className="text-white text-sm">🤖</span>
-                        </div>
-                      )}
-                      
-                      <div
-                        className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-md ${
-                          message.role === 'user'
-                            ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white'
-                            : 'bg-white text-stone-800 border border-stone-200'
-                        }`}
+              ) : (
+                <>
+                  {/* Conversation Header */}
+                  <div className="p-4 border-b border-stone-200 bg-gradient-to-r from-emerald-50 to-teal-50 flex items-center justify-between rounded-t-2xl">
+                    <div>
+                      <h3 className="font-bold text-stone-800">Conversation</h3>
+                      <p className="text-xs text-stone-500">{messages.length} messages</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => exportConversation('md')}
+                        className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors shadow-sm"
+                        title="Export as Markdown"
                       >
+                        <Download className="w-4 h-4" />
+                        <span className="hidden sm:inline">MD</span>
+                      </button>
+                      <button
+                        onClick={() => exportConversation('json')}
+                        className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors shadow-sm"
+                        title="Export as JSON"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span className="hidden sm:inline">JSON</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Messages */}
+                  <div className="p-6 space-y-6 max-h-[calc(100vh-300px)] overflow-y-auto">
+                    {messages.map((message) => (
+                      <div
+                        key={message._id}
+                        className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
+                      >
+                        {message.role === 'assistant' && (
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                            <span className="text-white text-sm">🤖</span>
+                          </div>
+                        )}
+                        
+                        <div
+                          className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-lg ${
+                            message.role === 'user'
+                              ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white'
+                              : 'bg-white text-stone-800 border border-stone-200'
+                          }`}
+                        >
                         {message.role === 'user' ? (
                           <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                         ) : (
@@ -551,16 +578,17 @@ const ChatHistory: React.FC = () => {
                         </div>
                       </div>
 
-                      {message.role === 'user' && (
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-stone-400 to-stone-600 flex items-center justify-center flex-shrink-0 shadow-md">
-                          <User className="w-5 h-5 text-white" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
+                        {message.role === 'user' && (
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-stone-400 to-stone-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                            <User className="w-5 h-5 text-white" />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>

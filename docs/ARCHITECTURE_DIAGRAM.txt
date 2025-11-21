@@ -1,0 +1,377 @@
+"""
+Activity Tracking System - Architecture Diagram
+================================================
+
+                                   USER
+                                     |
+                                     | Request
+                                     ↓
+                        ┌─────────────────────────┐
+                        │   Flask API Endpoint    │
+                        │  (itinerary, vision,    │
+                        │   chat, emergency)      │
+                        └───────────┬─────────────┘
+                                    |
+                                    | 1. Process Request
+                                    ↓
+                        ┌─────────────────────────┐
+                        │   Service Layer         │
+                        │  (gemini_service,       │
+                        │   weather_service)      │
+                        └───────────┬─────────────┘
+                                    |
+                                    | 2. Get Response
+                                    ↓
+                        ┌─────────────────────────┐
+                        │  Activity Helper        │
+                        │  log_itinerary_*()      │
+                        │  log_vision_*()         │
+                        │  ActivityTimer          │
+                        └───────────┬─────────────┘
+                                    |
+                                    | 3. Log Activity
+                                    ↓
+                        ┌─────────────────────────┐
+                        │   Activity Model        │
+                        │   (activity.py)         │
+                        └───────────┬─────────────┘
+                                    |
+                                    | 4. Save to DB
+                                    ↓
+                        ┌─────────────────────────┐
+                        │   MongoDB Collection    │
+                        │   'activities'          │
+                        └─────────────────────────┘
+                                    |
+                                    | Query
+                                    ↓
+                        ┌─────────────────────────┐
+                        │  Activity API Routes    │
+                        │  /api/activity/*        │
+                        │  - history              │
+                        │  - recent               │
+                        │  - summary              │
+                        │  - timeline             │
+                        │  - analytics            │
+                        └───────────┬─────────────┘
+                                    |
+                                    | Response
+                                    ↓
+                                   USER
+
+
+============================================================
+Data Flow Example: Itinerary Generation
+============================================================
+
+1. USER REQUEST
+   POST /api/itinerary/generate
+   {
+     "duration": 3,
+     "budget": 50000,
+     "interests": ["temples", "trekking"]
+   }
+
+2. ITINERARY SERVICE
+   - Generate itinerary using Gemini AI
+   - Create response
+
+3. ACTIVITY LOGGING
+   log_itinerary_generation(
+     user_id="user123",
+     preferences={duration: 3, budget: 50000, ...},
+     result={success: true, itinerary: {...}},
+     duration_ms=1500
+   )
+
+4. SAVED TO MONGODB
+   {
+     "_id": "...",
+     "user_id": "user123",
+     "service_type": "itinerary",
+     "action": "generate",
+     "details": {
+       "description": "Generated 3-day itinerary",
+       "budget_range": "₹50000"
+     },
+     "request_data": {
+       "duration": 3,
+       "budget": 50000,
+       "interests": ["temples", "trekking"]
+     },
+     "response_data": {
+       "success": true,
+       "days_count": 3
+     },
+     "timestamp": "2024-01-15T10:30:00Z",
+     "duration_ms": 1500
+   }
+
+5. USER CAN QUERY
+   GET /api/activity/history
+   GET /api/activity/summary
+   GET /api/activity/timeline
+
+
+============================================================
+Service Integration Pattern
+============================================================
+
+OLD CODE (Without Activity Tracking):
+--------------------------------------
+@app.route('/api/service/action', methods=['POST'])
+@require_auth
+def service_action(current_user):
+    data = request.get_json()
+    result = service.process(data)
+    return jsonify(result), 200
+
+
+NEW CODE (With Activity Tracking):
+-----------------------------------
+@app.route('/api/service/action', methods=['POST'])
+@require_auth
+def service_action(current_user):
+    import time
+    from app.utils.activity_helper import log_service_action
+    
+    start_time = time.time()
+    data = request.get_json()
+    result = service.process(data)
+    
+    # ✨ ADD ACTIVITY LOGGING ✨
+    duration_ms = (time.time() - start_time) * 1000
+    log_service_action(
+        user_id=current_user['user_id'],
+        params=data,
+        result=result,
+        duration_ms=duration_ms
+    )
+    
+    return jsonify(result), 200
+
+
+============================================================
+Database Collections
+============================================================
+
+┌─────────────────────────────────────────────────────────┐
+│  MongoDB Database: uttarakhand_tourism                  │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │  Collection: users                                │  │
+│  │  - User authentication & profile                  │  │
+│  │  - stats.total_chats (old metric)                 │  │
+│  └──────────────────────────────────────────────────┘  │
+│                                                          │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │  Collection: chats (OLD)                          │  │
+│  │  - Chat message history                           │  │
+│  │  - user_id, session_id, content                   │  │
+│  └──────────────────────────────────────────────────┘  │
+│                                                          │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │  Collection: activities (NEW) ✨                  │  │
+│  │  - Complete service usage tracking                │  │
+│  │  - All services: itinerary, vision, chat, etc.    │  │
+│  │  - Detailed request/response logging              │  │
+│  │  - Performance metrics                            │  │
+│  │  - Timeline & analytics support                   │  │
+│  └──────────────────────────────────────────────────┘  │
+│                                                          │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │  Collection: itineraries                          │  │
+│  │  - Saved itinerary plans                          │  │
+│  └──────────────────────────────────────────────────┘  │
+│                                                          │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │  Collection: places                               │  │
+│  │  - Tourist place information                      │  │
+│  └──────────────────────────────────────────────────┘  │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+
+
+============================================================
+Activity Tracking: Key Features
+============================================================
+
+┌──────────────────────────────────────────────────────────┐
+│                                                           │
+│  📊 ACTIVITY TRACKING FEATURES                           │
+│                                                           │
+│  1. Service Usage Tracking                               │
+│     ↳ Track: itinerary, vision, chat, emergency, etc.   │
+│                                                           │
+│  2. Request/Response Logging                             │
+│     ↳ Store sanitized request & response data            │
+│                                                           │
+│  3. Performance Metrics                                  │
+│     ↳ Execution time, avg duration per service           │
+│                                                           │
+│  4. Timeline Visualization                               │
+│     ↳ Group by: day, week, month                         │
+│                                                           │
+│  5. Service Analytics                                    │
+│     ↳ Usage stats, popular services, patterns            │
+│                                                           │
+│  6. User Journey                                         │
+│     ↳ Complete history of where user went                │
+│                                                           │
+│  7. Privacy & Security                                   │
+│     ↳ Sanitized data, user can delete history            │
+│                                                           │
+└──────────────────────────────────────────────────────────┘
+
+
+============================================================
+API Endpoints Overview
+============================================================
+
+Authentication Required: ✅ (Bearer Token)
+
+┌──────────────────────────────────────────────────────────┐
+│  POST   /api/activity/log                                │
+│  → Log a new activity                                    │
+│                                                           │
+│  GET    /api/activity/history                            │
+│  → Get activity history (paginated, filtered)            │
+│  → Query params: limit, skip, service_type, days         │
+│                                                           │
+│  GET    /api/activity/recent                             │
+│  → Get recent activities (quick view)                    │
+│  → Query params: limit                                   │
+│                                                           │
+│  GET    /api/activity/summary                            │
+│  → Get usage summary & statistics                        │
+│  → Query params: days                                    │
+│                                                           │
+│  GET    /api/activity/timeline                           │
+│  → Get timeline data for charts                          │
+│  → Query params: group_by (day/week/month), days         │
+│                                                           │
+│  GET    /api/activity/analytics/:service_type            │
+│  → Get analytics for specific service                    │
+│                                                           │
+│  DELETE /api/activity/history                            │
+│  → Delete all activity history for user                  │
+└──────────────────────────────────────────────────────────┘
+
+
+============================================================
+Integration Methods
+============================================================
+
+┌──────────────────────────────────────────────────────────┐
+│  METHOD 1: Helper Functions                              │
+│  ─────────────────────────────                           │
+│  from app.utils.activity_helper import (                 │
+│      log_itinerary_generation,                           │
+│      log_vision_analysis,                                │
+│      log_chat_interaction                                │
+│  )                                                        │
+│                                                           │
+│  # Use after service call                                │
+│  log_itinerary_generation(user_id, prefs, result, time)  │
+│                                                           │
+│  ✓ Easiest to use                                        │
+│  ✓ Pre-configured for common services                    │
+│  ✓ Recommended for most cases                            │
+└──────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────┐
+│  METHOD 2: ActivityTimer Context Manager                 │
+│  ────────────────────────────────────                    │
+│  from app.utils.activity_helper import ActivityTimer     │
+│                                                           │
+│  with ActivityTimer(                                     │
+│      user_id, service_type, action, ...                  │
+│  ) as timer:                                             │
+│      result = your_service()                             │
+│      timer.set_response_data(result)                     │
+│                                                           │
+│  ✓ Automatic timing                                      │
+│  ✓ Clean code                                            │
+│  ✓ Exception handling built-in                           │
+└──────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────┐
+│  METHOD 3: Manual Logging                                │
+│  ─────────────────────────                               │
+│  from app.utils.activity_helper import (                 │
+│      get_activity_logger                                 │
+│  )                                                        │
+│                                                           │
+│  logger = get_activity_logger()                          │
+│  logger.log(                                             │
+│      user_id, service_type, action,                      │
+│      details, request_data, response_data, metadata      │
+│  )                                                        │
+│                                                           │
+│  ✓ Full control                                          │
+│  ✓ Custom scenarios                                      │
+│  ✓ Advanced use cases                                    │
+└──────────────────────────────────────────────────────────┘
+
+
+============================================================
+Files Structure
+============================================================
+
+backend/
+├── app/
+│   ├── models/
+│   │   ├── activity.py          ← ✨ NEW: Activity model
+│   │   ├── chat.py              ← OLD: Chat history
+│   │   └── __init__.py          ← Updated
+│   │
+│   ├── api/
+│   │   ├── activity_routes.py   ← ✨ NEW: Activity endpoints
+│   │   ├── itinerary.py         ← TO INTEGRATE
+│   │   ├── vision.py            ← TO INTEGRATE
+│   │   ├── chat.py              ← TO INTEGRATE
+│   │   └── emergency.py         ← TO INTEGRATE
+│   │
+│   ├── utils/
+│   │   └── activity_helper.py   ← ✨ NEW: Helper functions
+│   │
+│   ├── scripts/
+│   │   └── migrate_chat_to_activity.py  ← ✨ NEW: Migration
+│   │
+│   └── __init__.py              ← Updated
+│
+├── examples/
+│   └── activity_logging_integration.py  ← ✨ NEW: Examples
+│
+└── docs/
+    ├── ACTIVITY_TRACKING_SYSTEM.md      ← ✨ NEW: Full docs
+    ├── IMPLEMENTATION_SUMMARY.md        ← ✨ NEW: Summary
+    └── ACTIVITY_TRACKING_README.md      ← ✨ NEW: Quick ref
+
+Activity_Tracking_API.postman_collection.json  ← ✨ NEW: Tests
+
+
+============================================================
+Summary
+============================================================
+
+BEFORE:
+  ❌ Only chat history saved
+  ❌ No service usage tracking
+  ❌ Limited insights
+  ❌ No analytics
+
+AFTER:
+  ✅ Complete activity tracking
+  ✅ All services monitored
+  ✅ Detailed analytics
+  ✅ Timeline visualization
+  ✅ Performance metrics
+  ✅ User journey tracking
+  ✅ Business intelligence
+
+STATUS: ✅ READY FOR INTEGRATION
+
+NEXT STEP: Integrate activity logging in existing service endpoints
+"""

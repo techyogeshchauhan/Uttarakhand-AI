@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Globe, Camera, Save, Loader2, Award, TrendingUp, Calendar } from 'lucide-react';
+import { User, Mail, Globe, Camera, Save, Loader2, Award, TrendingUp, Calendar, Sparkles } from 'lucide-react';
 import Navbar from '../common/Navbar';
 import Footer from '../common/Footer';
+import type { Language } from '../../types';
 
 interface UserProfile {
   _id: string;
@@ -18,7 +19,12 @@ interface UserProfile {
   };
 }
 
-const Profile: React.FC = () => {
+interface ProfileProps {
+  language?: Language;
+  onLanguageChange?: (lang: Language) => void;
+}
+
+const Profile: React.FC<ProfileProps> = ({ language = 'english', onLanguageChange }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -111,9 +117,9 @@ const Profile: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-stone-50 via-orange-50 to-yellow-50">
+      <div className="min-h-screen bg-stone-50 flex flex-col">
+        <Navbar currentLanguage={language} onLanguageChange={onLanguageChange} />
+        <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="w-12 h-12 animate-spin text-emerald-600 mx-auto mb-4" />
             <p className="text-stone-600 font-medium">Loading your profile...</p>
@@ -126,9 +132,9 @@ const Profile: React.FC = () => {
 
   if (!profile) {
     return (
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-stone-50 via-orange-50 to-yellow-50">
+      <div className="min-h-screen bg-stone-50 flex flex-col">
+        <Navbar currentLanguage={language} onLanguageChange={onLanguageChange} />
+        <div className="flex-1 flex items-center justify-center">
           <p className="text-stone-600">Failed to load profile</p>
         </div>
         <Footer />
@@ -137,24 +143,45 @@ const Profile: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-stone-50 via-orange-50 to-yellow-50">
-      <Navbar />
+    <div className="min-h-screen flex flex-col bg-stone-50">
+      <Navbar currentLanguage={language} onLanguageChange={onLanguageChange} />
       
-      <div className="flex-1 py-12">
-        <div className="max-w-6xl mx-auto px-4">
-          {/* Page Header */}
-          <div className="text-center mb-12">
-            <div className="inline-block p-4 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full mb-4 shadow-lg">
-              <User className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-4xl font-bold text-stone-800 mb-2">My Profile</h1>
-            <p className="text-stone-600">Manage your account settings and preferences</p>
+      {/* Hero Section */}
+      <div className="relative pt-40 pb-16 bg-gradient-to-br from-emerald-900 via-teal-900 to-green-900 overflow-hidden">
+        {/* Mountain Pattern Background */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="profile-pattern" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+                <path d="M30 10 L50 40 L10 40 Z" fill="currentColor" opacity="0.3"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#profile-pattern)"/>
+          </svg>
+        </div>
+
+        <div className="container mx-auto px-6 max-w-6xl text-center relative z-10">
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm font-medium mb-6 border border-white/20">
+            <User className="w-4 h-4" />
+            <span>Account Settings</span>
           </div>
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-4" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
+            My Profile
+          </h1>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.2)' }}>
+            Manage your account settings and preferences
+          </p>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 py-16">
+        <div className="container mx-auto px-6 max-w-6xl">
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Profile Card */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl shadow-xl p-8 text-center border border-stone-200">
+              <div className="bg-white rounded-2xl shadow-lg p-8 text-center border border-stone-200">
                 <div className="relative inline-block mb-6">
                   {formData.avatar ? (
                     <img
@@ -191,7 +218,7 @@ const Profile: React.FC = () => {
               </div>
 
               {/* Stats Card */}
-              <div className="bg-white rounded-2xl shadow-xl p-6 mt-6 border border-stone-200">
+              <div className="bg-white rounded-2xl shadow-lg p-6 mt-6 border border-stone-200">
                 <div className="flex items-center gap-2 mb-6">
                   <TrendingUp className="w-5 h-5 text-emerald-600" />
                   <h3 className="font-bold text-stone-800 text-lg">Your Statistics</h3>
@@ -223,7 +250,7 @@ const Profile: React.FC = () => {
               </div>
 
               {/* Achievement Badge */}
-              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl shadow-xl p-6 mt-6 border-2 border-amber-200">
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl shadow-lg p-6 mt-6 border-2 border-amber-200">
                 <div className="text-center">
                   <Award className="w-12 h-12 text-amber-600 mx-auto mb-3" />
                   <h4 className="font-bold text-stone-800 mb-1">Explorer Badge</h4>
@@ -234,7 +261,7 @@ const Profile: React.FC = () => {
 
             {/* Profile Form */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl shadow-xl p-8 border border-stone-200">
+              <div className="bg-white rounded-2xl shadow-lg p-8 border border-stone-200">
                 <div className="flex justify-between items-center mb-8">
                   <div>
                     <h3 className="text-2xl font-bold text-stone-800">Profile Information</h3>

@@ -27,10 +27,12 @@ def create_app():
     # Register blueprints
     from app.api.auth_routes import auth_bp
     from app.api.chat_routes import chat_bp as chat_history_bp
+    from app.api.activity_routes import activity_bp
     
-    # Register authentication and chat history routes
+    # Register authentication, chat history, and activity routes
     app.register_blueprint(auth_bp)
     app.register_blueprint(chat_history_bp)
+    app.register_blueprint(activity_bp)
     
     # Register existing blueprints
     try:
@@ -75,6 +77,7 @@ def create_app():
                 'vision': '/api/vision',
                 'itinerary': '/api/itinerary',
                 'emergency': '/api/emergency',
+                'activity': '/api/activity',
                 'health': '/api/health'
             }
         }), 200
