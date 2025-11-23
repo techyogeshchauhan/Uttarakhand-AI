@@ -55,10 +55,6 @@ const Navbar: React.FC<NavbarProps> = ({
     { label: t.nav.home, path: '/' },
     { label: t.nav.services, path: '/services' },
     { label: t.nav.explore, path: '/explore' },
-    ...(user ? [
-      { label: t.nav.history, path: '/history' },
-      { label: t.nav.profile, path: '/profile' }
-    ] : []),
     { label: currentLanguage === 'hindi' ? 'आधिकारिक पर्यटन' : 'Official Tourism', path: 'https://uttarakhandtourism.gov.in/', external: true }
   ];
 
@@ -191,26 +187,6 @@ const Navbar: React.FC<NavbarProps> = ({
                           <p className="text-sm font-semibold text-stone-800">{user.name}</p>
                           <p className="text-xs text-stone-500 truncate">{user.email}</p>
                         </div>
-                        <button
-                          onClick={() => {
-                            navigate('/profile');
-                            setProfileMenuOpen(false);
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
-                        >
-                          <User className="w-4 h-4" />
-                          <span>{t.nav.profile}</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            navigate('/history');
-                            setProfileMenuOpen(false);
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
-                        >
-                          <History className="w-4 h-4" />
-                          <span>{currentLanguage === 'hindi' ? 'चैट इतिहास' : 'Chat History'}</span>
-                        </button>
                         <button
                           onClick={() => {
                             navigate('/activity/dashboard');

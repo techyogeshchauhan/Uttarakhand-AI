@@ -4,6 +4,8 @@ from app.services.gemini_service import get_gemini_service
 from app.services.weather_service import get_weather_service
 from app.utils.validators import validate_language
 from app.utils.logger import logger
+from app.utils.activity_helper import get_activity_logger
+from app.utils.auth import get_current_user_id
 
 emergency_bp = Blueprint('emergency', __name__)
 
@@ -79,6 +81,24 @@ def get_contacts():
         else:
             contacts = list(EMERGENCY_CONTACTS.values())
         
+        # Log activity
+        user_id = get_current_user_id() or 'anonymous'
+        try:
+            activity_logger = get_activity_logger()
+            activity_logger.log(
+                user_id=user_id,
+                service_type='emergency',
+                action='contacts_lookup',
+                details={
+                    'description': f'Viewed emergency contacts',
+                    'category': category or 'all'
+                },
+                request_data={'category': category},
+                response_data={'success': True, 'count': len(contacts)}
+            )
+        except Exception as log_error:
+            logger.warning(f"Failed to log activity: {str(log_error)}")
+        
         return jsonify({
             'success': True,
             'contacts': contacts,
@@ -141,6 +161,32 @@ def get_advice():
             language=language
         )
         
+        # Log activity
+        user_id = get_current_user_id() or 'anonymous'
+        try:
+            activity_logger = get_activity_logger()
+            activity_logger.log(
+                user_id=user_id,
+                service_type='emergency',
+                action='advice_request',
+                details={
+                    'description': 'Requested emergency advice',
+                    'situation_preview': situation[:100]
+                },
+                request_data={
+                    'situation_length': len(situation),
+                    'location': location,
+                    'language': language
+                },
+                response_data={
+                    'success': result.get('success', False),
+                    'advice_length': len(result.get('advice', ''))
+                },
+                metadata={'language': language}
+            )
+        except Exception as log_error:
+            logger.warning(f"Failed to log activity: {str(log_error)}")
+        
         if result.get('success'):
             return jsonify({
                 'success': True,
@@ -183,6 +229,27 @@ def get_weather():
         # Get weather data
         result = weather_service.get_weather(location)
         
+        # Log activity
+        user_id = get_current_user_id() or 'anonymous'
+        try:
+            activity_logger = get_activity_logger()
+            activity_logger.log(
+                user_id=user_id,
+                service_type='weather',
+                action='query',
+                details={
+                    'description': f'Checked weather for {location}',
+                    'location': location
+                },
+                request_data={'location': location},
+                response_data={
+                    'success': result.get('success', False),
+                    'temperature': result.get('data', {}).get('temperature') if result.get('success') else None
+                }
+            )
+        except Exception as log_error:
+            logger.warning(f"Failed to log activity: {str(log_error)}")
+        
         return jsonify(result), 200 if result.get('success') else 500
         
     except Exception as e:
@@ -209,26 +276,71 @@ def get_alerts():
             {
                 'id': 1,
                 'type': 'weather',
-                'severity': 'moderate',
-                'title': 'Heavy Rainfall Warning',
-                'message': 'Heavy rainfall expected in Dehradun and surrounding areas. Avoid trekking.',
-                'location': 'Dehradun',
-                'valid_until': '2024-12-31'
+                'severity': 'high',
+                'title': 'Heavy Snowfall Alert',
+                'message': 'Heavy snowfall expected in higher altitude areas including Kedarnath, Badrinath, and Gangotri. Roads may be blocked. Carry warm clothing and emergency supplies.',
+                'location': 'Char Dham Region',
+                'valid_until': '2025-12-15'
             },
             {
                 'id': 2,
                 'type': 'road',
                 'severity': 'high',
-                'title': 'Road Closure',
-                'message': 'NH-58 closed between Rishikesh and Devprayag due to landslide. Use alternate route.',
+                'title': 'Road Closure - Landslide',
+                'message': 'NH-58 closed between Rishikesh and Devprayag due to landslide. Use alternate route via Chamba. Expected clearance in 48 hours.',
                 'location': 'Rishikesh-Devprayag',
-                'valid_until': '2024-12-30'
+                'valid_until': '2025-11-25'
+            },
+            {
+                'id': 3,
+                'type': 'weather',
+                'severity': 'moderate',
+                'title': 'Dense Fog Warning',
+                'message': 'Dense fog expected in valley areas during early morning hours. Drive carefully and use fog lights. Visibility may drop below 50 meters.',
+                'location': 'Dehradun Valley',
+                'valid_until': '2025-12-31'
+            },
+            {
+                'id': 4,
+                'type': 'safety',
+                'severity': 'moderate',
+                'title': 'Wildlife Activity Alert',
+                'message': 'Increased wildlife movement reported in Jim Corbett National Park buffer zones. Avoid night travel and maintain safe distance from animals.',
+                'location': 'Jim Corbett Area',
+                'valid_until': '2025-12-01'
+            },
+            {
+                'id': 5,
+                'type': 'event',
+                'severity': 'low',
+                'title': 'Festival Rush Expected',
+                'message': 'Heavy tourist influx expected during upcoming festivals. Book accommodations in advance. Traffic congestion likely in Haridwar and Rishikesh.',
+                'location': 'Haridwar-Rishikesh',
+                'valid_until': '2025-11-30'
             }
         ]
         
         # Filter by location if provided
         if location:
             alerts = [a for a in alerts if location.lower() in a['location'].lower()]
+        
+        # Log activity
+        user_id = get_current_user_id() or 'anonymous'
+        try:
+            activity_logger = get_activity_logger()
+            activity_logger.log(
+                user_id=user_id,
+                service_type='emergency',
+                action='alerts_check',
+                details={
+                    'description': 'Checked travel alerts',
+                    'location': location or 'all'
+                },
+                request_data={'location': location},
+                response_data={'success': True, 'alerts_count': len(alerts)}
+            )
+        except Exception as log_error:
+            logger.warning(f"Failed to log activity: {str(log_error)}")
         
         return jsonify({
             'success': True,

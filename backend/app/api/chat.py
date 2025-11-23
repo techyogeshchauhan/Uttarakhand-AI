@@ -4,6 +4,9 @@ from app.services.gemini_service import get_gemini_service
 from app.services.translation_service import get_translation_service
 from app.utils.validators import validate_language, sanitize_input
 from app.utils.logger import logger
+from app.utils.activity_helper import log_chat_interaction
+from app.utils.auth import get_current_user_id
+import time
 
 chat_bp = Blueprint('chat_ai', __name__)
 
@@ -55,12 +58,31 @@ def send_message():
                 'message': 'AI service is not configured. Please check GEMINI_API_KEY.'
             }), 500
         
+        # Track start time
+        start_time = time.time()
+        
         # Get AI response
         response = gemini_service.chat_with_context(
             message=message,
             language=language,
             conversation_history=conversation_history
         )
+        
+        # Calculate duration
+        duration_ms = (time.time() - start_time) * 1000
+        
+        # Log activity
+        user_id = get_current_user_id() or 'anonymous'
+        try:
+            log_chat_interaction(
+                user_id=user_id,
+                query=message,
+                response=response.get('message', ''),
+                language=language,
+                duration_ms=duration_ms
+            )
+        except Exception as log_error:
+            logger.warning(f"Failed to log activity: {str(log_error)}")
         
         if response.get('success'):
             return jsonify({

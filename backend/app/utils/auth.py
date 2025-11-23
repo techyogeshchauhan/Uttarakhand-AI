@@ -158,3 +158,19 @@ def optional_auth(f):
         return f(*args, **kwargs)
     
     return decorated_function
+
+
+def get_current_user_id() -> str:
+    """
+    Get current user ID from request context
+    Returns 'anonymous' if not authenticated
+    
+    Returns:
+        User ID string or 'anonymous'
+    """
+    try:
+        token = get_token_from_header()
+        payload = decode_token(token)
+        return payload.get('user_id', 'anonymous')
+    except:
+        return None

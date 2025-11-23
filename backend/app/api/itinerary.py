@@ -4,6 +4,9 @@ from app.services.gemini_service import get_gemini_service
 from app.models.itinerary import get_itinerary_model
 from app.utils.validators import validate_itinerary_request, validate_language
 from app.utils.logger import logger
+from app.utils.activity_helper import log_itinerary_generation
+from app.utils.auth import get_current_user_id
+import time
 
 itinerary_bp = Blueprint('itinerary', __name__)
 
@@ -45,9 +48,28 @@ def generate_itinerary():
             language = 'english'
         
         # Prepare preferences
+        duration = int(data['duration'])
+        budget = float(data['budget'])
+        
+        # Budget validation - minimum budget per day calculation
+        # Minimum daily costs: Transport (500) + Food (600) + Accommodation (800) = 1900 per day
+        min_budget_per_day = 1900
+        min_total_budget = min_budget_per_day * duration
+        
+        # Check if budget is too low
+        if budget < min_total_budget:
+            return jsonify({
+                'success': False,
+                'message': f'यह बजट बहुत कम है। {duration} दिन की यात्रा के लिए कम से कम ₹{min_total_budget} की आवश्यकता है। कृपया अपना बजट बढ़ाएं।',
+                'message_en': f'This budget is too low. For a {duration}-day trip, minimum ₹{min_total_budget} is required. Please increase your budget.',
+                'minimum_budget': min_total_budget,
+                'provided_budget': budget,
+                'shortfall': min_total_budget - budget
+            }), 400
+        
         preferences = {
-            'duration': int(data['duration']),
-            'budget': float(data['budget']),
+            'duration': duration,
+            'budget': budget,
             'interests': data['interests'],
             'start_location': data.get('start_location', 'Dehradun'),
             'travel_style': data.get('travel_style', 'moderate'),
@@ -64,11 +86,29 @@ def generate_itinerary():
                 'message': 'AI service is not configured. Please check GEMINI_API_KEY.'
             }), 500
         
+        # Track start time for activity logging
+        start_time = time.time()
+        
         # Generate itinerary
         result = gemini_service.generate_itinerary(
             preferences=preferences,
             language=language
         )
+        
+        # Calculate duration
+        duration_ms = (time.time() - start_time) * 1000
+        
+        # Log activity (get user_id from request or use 'anonymous')
+        user_id = get_current_user_id() or data.get('user_id', 'anonymous')
+        try:
+            log_itinerary_generation(
+                user_id=user_id,
+                preferences=preferences,
+                result=result,
+                duration_ms=duration_ms
+            )
+        except Exception as log_error:
+            logger.warning(f"Failed to log activity: {str(log_error)}")
         
         if result.get('success'):
             itinerary_data = result.get('itinerary', {})
@@ -78,7 +118,7 @@ def generate_itinerary():
             if save_to_db:
                 itinerary_model = get_itinerary_model()
                 saved = itinerary_model.create_itinerary({
-                    'user_id': data.get('user_id', ''),
+                    'user_id': user_id,
                     'duration': preferences['duration'],
                     'budget': preferences['budget'],
                     'preferences': preferences,

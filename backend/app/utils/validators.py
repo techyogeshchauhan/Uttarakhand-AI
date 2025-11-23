@@ -23,6 +23,31 @@ def validate_image_format(filename: str) -> bool:
     allowed = ['.jpg', '.jpeg', '.png', '.webp', '.gif']
     return any(filename.lower().endswith(ext) for ext in allowed)
 
+def validate_budget_for_duration(budget: float, duration: int) -> tuple[bool, Optional[str], Optional[int]]:
+    """
+    Validate if budget is sufficient for the trip duration
+    
+    Args:
+        budget: Total budget in rupees
+        duration: Trip duration in days
+        
+    Returns:
+        (is_valid, error_message, minimum_required_budget)
+    """
+    # Minimum daily costs breakdown:
+    # - Accommodation: ₹800 (budget hotel/guesthouse)
+    # - Meals: ₹600 (₹200 breakfast + ₹200 lunch + ₹200 dinner)
+    # - Transport: ₹500 (local transport/shared taxi)
+    # Total minimum per day: ₹1900
+    
+    min_budget_per_day = 1900
+    min_total_budget = min_budget_per_day * duration
+    
+    if budget < min_total_budget:
+        return False, f"Budget too low. Minimum ₹{min_total_budget} required for {duration} days", min_total_budget
+    
+    return True, None, min_total_budget
+
 def validate_itinerary_request(data: Dict[str, Any]) -> tuple[bool, Optional[str]]:
     """
     Validate itinerary generation request
