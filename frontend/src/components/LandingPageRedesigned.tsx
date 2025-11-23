@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Navbar from './common/Navbar';
 import Footer from './common/Footer';
+import UttarakhandMap from './home/UttarakhandMap';
 import { translations, Language } from '../utils/translations';
 import type { Language as LangType } from '../types';
 
@@ -209,8 +210,15 @@ const LandingPageRedesigned: React.FC<LandingPageProps> = ({
         </div>
       </div>
 
-      {/* Destinations Showcase */}
+      {/* Interactive Uttarakhand Map */}
       <div className="py-20 px-6 bg-gradient-to-br from-stone-100 via-emerald-50 to-teal-50">
+        <div className="container mx-auto max-w-7xl">
+          <UttarakhandMap />
+        </div>
+      </div>
+
+      {/* Destinations Showcase */}
+      <div className="py-20 px-6 bg-white">
         <div className="container mx-auto max-w-7xl">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-stone-800 mb-4">

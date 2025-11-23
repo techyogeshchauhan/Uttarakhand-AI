@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from './common/Navbar';
 import PremiumHeroSlider from './explore/PremiumHeroSlider';
 import NaturalCategoryCards from './explore/NaturalCategoryCards';
-import DestinationShowcase from './explore/DestinationShowcase';
+import DestinationShowcaseNew from './explore/DestinationShowcaseNew';
 import Footer from './common/Footer';
 import type { Language } from '../types';
 import '../styles/uttarakhand-theme.css';
@@ -33,7 +33,11 @@ function Dashboard({ language = 'english', onLanguageChange }: DashboardProps) {
       <NaturalCategoryCards />
 
       {/* Destination Showcase */}
-      <DestinationShowcase />
+      <div className="py-16 px-8 bg-gradient-to-br from-stone-50 to-stone-100">
+        <div className="container mx-auto max-w-7xl">
+          <DestinationShowcaseNew />
+        </div>
+      </div>
       
       {/* Call to Action Section */}
       <div className="py-16 bg-gradient-to-br from-emerald-50 via-teal-50 to-stone-50">

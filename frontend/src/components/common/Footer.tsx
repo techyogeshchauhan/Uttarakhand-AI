@@ -43,7 +43,7 @@ const Footer: React.FC = () => {
               <p className="text-sm text-stone-400 font-medium mb-3">देवभूमि • Land of Gods</p>
             </div>
             <p className="text-sm text-stone-400 leading-relaxed">
-              Your AI-powered companion for exploring the Himalayas, sacred temples, and natural wonders of Uttarakhand.
+              “An AI-powered companion developed at Dev Sanskriti Vishwavidyalaya (DSVV) & its research unit Centre for Artificial Intelligence and Research (CAIR), Haridwar—blending cutting-edge data science with the spiritual-cultural ethos of Uttarakhand.”
             </p>
           </div>
 

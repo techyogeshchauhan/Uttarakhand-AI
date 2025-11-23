@@ -6,6 +6,7 @@ import { sendChatMessage, getChatSuggestions, saveMessage, submitFeedback } from
 import type { Language } from '../../types';
 import type { ChatMessage, ConversationHistory } from '../../types/chat';
 import { generateId } from '../../utils/helpers';
+import { speakText } from '../../utils/textToSpeech';
 
 interface ChatInterfaceProps {
   language: Language;
@@ -128,16 +129,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ language }) => {
 
         // Auto-speak if enabled
         if (autoSpeak) {
-          const utterance = new SpeechSynthesisUtterance(response.response);
-          const langMap: Record<Language, string> = {
-            english: 'en-IN',
-            hindi: 'hi-IN',
-            garhwali: 'hi-IN',
-            kumaoni: 'hi-IN'
-          };
-          utterance.lang = langMap[language] || 'en-IN';
-          utterance.rate = 0.9;
-          window.speechSynthesis.speak(utterance);
+          speakText(response.response, language);
         }
       } else {
         throw new Error(response.message || 'Failed to get response');

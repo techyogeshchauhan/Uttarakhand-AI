@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { User, Bot, Volume2, VolumeX, ThumbsUp, ThumbsDown } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { ChatMessage } from '../../types/chat';
+import { speakText, stopSpeaking } from '../../utils/textToSpeech';
+import type { Language } from '../../types';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -15,29 +17,16 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) =>
 
   const handleSpeak = () => {
     if (isSpeaking) {
-      window.speechSynthesis.cancel();
+      stopSpeaking();
       setIsSpeaking(false);
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(message.content);
-    
-    // Set language based on message language
-    const langMap: Record<string, string> = {
-      english: 'en-IN',
-      hindi: 'hi-IN',
-      garhwali: 'hi-IN',
-      kumaoni: 'hi-IN'
-    };
-    utterance.lang = langMap[message.language || 'english'] || 'en-IN';
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
-
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-
-    window.speechSynthesis.speak(utterance);
+    speakText(message.content, (message.language as Language) || 'english', {
+      onStart: () => setIsSpeaking(true),
+      onEnd: () => setIsSpeaking(false),
+      onError: () => setIsSpeaking(false),
+    });
   };
 
   const handleFeedback = async (rating: number) => {
